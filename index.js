@@ -20,8 +20,25 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
+        let booksCollection = client.db('Grand-Book-library').collection('books');
+
+        app.get('/books', async (req, res) => {
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+            console.log(page, size)
+            let result = await booksCollection.find()
+                .skip(page * size)
+                .limit(size)
+                .toArray();
+            res.send(result);
+        })
+        app.get('/bookCount', async (req, res) => {
+
+            let counted = await booksCollection.estimatedDocumentCount();
+            res.send({ counted })
+        })
+        // Connect the client to the server	(optional starting in v4.7)
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
